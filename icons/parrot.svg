@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- tail -->
+  <path d="M36 48 L43 63 L35 63 L31 50 Z" fill="#e53935"/>
+  <path d="M40 45 L53 62 L45 63 L35 49 Z" fill="#1e88e5"/>
+  <!-- body -->
+  <path d="M25 30 C21 42 25 52 36 54 C47 55 51 45 48 35 C45 27 29 23 25 30 Z" fill="#2e9e44"/>
+  <!-- wing -->
+  <path d="M33 33 C42 31 49 38 47 48 C45 54 38 55 34 51 C37 46 37 39 33 33 Z" fill="#1f7a34"/>
+  <path d="M40 47 C44 48 46 51 44 54 C40 55 37 54 35 52 Z" fill="#1e88e5"/>
+  <!-- head -->
+  <circle cx="36" cy="22" r="13" fill="#34b84f"/>
+  <!-- crest -->
+  <path d="M33 10 C35 3 42 1 46 3 C42 4 40 7 40 10 C44 7 49 8 51 11 C47 11 44 13 43 15 Z" fill="#e53935"/>
+  <!-- face patch + eye -->
+  <ellipse cx="31" cy="21" rx="7" ry="6.5" fill="#fff"/>
+  <circle cx="31" cy="20.5" r="3" fill="#1b1b1b"/>
+  <circle cx="32.1" cy="19.4" r="1" fill="#fff"/>
+  <!-- beak -->
+  <path d="M26 16 C19 16 14.5 21 15.5 29 C17 26.5 19 25 21.5 25 C22.5 23 24.5 22 27.5 22 Z" fill="#ffb300"/>
+  <path d="M21.5 25 C21 28 23 30.5 27.5 29.5 L27.5 23.5 Z" fill="#424242"/>
+  <!-- sound waves -->
+  <path d="M10 23 C7.5 26 7.5 31 10 34" stroke="#ff9800" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M5 19 C0.5 24.5 0.5 32.5 5 38" stroke="#ff9800" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+</svg>

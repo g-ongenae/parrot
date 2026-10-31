@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Parrot settings</title>
+    <link rel="stylesheet" href="../src/theme.css" />
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <header>
+      <img src="../icons/parrot.svg" alt="" />
+      <div>
+        <h1>Parrot settings</h1>
+        <p class="tagline">TL;DL · Too Long, Do Listen</p>
+      </div>
+    </header>
+
+    <form id="form">
+      <section>
+        <h2>Summary</h2>
+        <fieldset class="choices">
+          <label><input type="radio" name="summaryProvider" value="anthropic" /> Claude</label>
+          <label><input type="radio" name="summaryProvider" value="openai" /> ChatGPT</label>
+          <label><input type="radio" name="summaryProvider" value="custom" /> Other (OpenAI-compatible)</label>
+        </fieldset>
+
+        <div data-show="summaryProvider=anthropic">
+          <label>Anthropic API key <input name="anthropicKey" type="password" placeholder="sk-ant-…" autocomplete="off" /></label>
+          <label>Model <input name="anthropicModel" list="anthropic-models" /></label>
+          <datalist id="anthropic-models">
+            <option value="claude-opus-5-5"></option>
+            <option value="claude-sonnet-5-5"></option>
+            <option value="claude-haiku-5-5"></option>
+          </datalist>
+          <p class="hint">Get a key at <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>. Sonnet and Haiku are faster and cheaper than Opus for summaries.</p>
+        </div>
+
+        <div data-show="summaryProvider=openai">
+          <label>OpenAI API key <input name="openaiKey" type="password" placeholder="sk-…" autocomplete="off" /></label>
+          <label>Model <input name="openaiModel" /></label>
+          <p class="hint">Get a key at <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a>.</p>
+        </div>
+
+        <div data-show="summaryProvider=custom">
+          <label>Base URL <input name="customBaseUrl" type="url" placeholder="http://localhost:11434/v1" /></label>
+          <label>API key (optional) <input name="customKey" type="password" autocomplete="off" /></label>
+          <label>Model <input name="customModel" /></label>
+          <p class="hint">Any provider with an OpenAI-style <code>/chat/completions</code> endpoint: Ollama, LM Studio, Mistral, OpenRouter, Groq…</p>
+        </div>
+
+        <div class="row">
+          <label>Length
+            <select name="summaryLength">
+              <option value="short">Short</option>
+              <option value="medium">Medium</option>
+              <option value="detailed">Detailed</option>
+            </select>
+          </label>
+          <label>Language <input name="summaryLanguage" placeholder="Same as the page" /></label>
+        </div>
+      </section>
+
+      <section>
+        <h2>Read out loud</h2>
+        <fieldset class="choices">
+          <label><input type="radio" name="ttsProvider" value="browser" /> Browser voice (free, offline)</label>
+          <label><input type="radio" name="ttsProvider" value="openai" /> OpenAI voice (natural, paid)</label>
+        </fieldset>
+        <p class="hint">Claude doesn't generate audio, so natural voices come from OpenAI. The browser voice uses your system voices.</p>
+
+        <div data-show="ttsProvider=browser">
+          <label>Voice
+            <select name="browserVoice" id="browser-voices">
+              <option value="">Automatic (matches the page language)</option>
+            </select>
+          </label>
+        </div>
+
+        <div data-show="ttsProvider=openai">
+          <label data-show="summaryProvider!=openai">OpenAI API key <input name="openaiKey" type="password" placeholder="sk-…" autocomplete="off" /></label>
+          <div class="row">
+            <label>Voice
+              <select name="openaiVoice">
+                <option>alloy</option>
+                <option>ash</option>
+                <option>ballad</option>
+                <option>cedar</option>
+                <option>coral</option>
+                <option>echo</option>
+                <option>fable</option>
+                <option>marin</option>
+                <option>nova</option>
+                <option>onyx</option>
+                <option>sage</option>
+                <option>shimmer</option>
+                <option>verse</option>
+              </select>
+            </label>
+            <label>Model <input name="openaiTtsModel" /></label>
+          </div>
+        </div>
+
+        <label>Default speed
+          <select name="rate">
+            <option value="0.75">0.75×</option>
+            <option value="1">1×</option>
+            <option value="1.25">1.25×</option>
+            <option value="1.5">1.5×</option>
+            <option value="1.75">1.75×</option>
+            <option value="2">2×</option>
+          </select>
+        </label>
+        <button type="button" id="test-voice" class="secondary">Test voice</button>
+      </section>
+
+      <div class="actions">
+        <button type="submit" class="primary">Save</button>
+        <span id="saved" class="saved" hidden></span>
+      </div>
+      <p class="hint">Keys are stored only in this browser and sent only to the provider you pick. Page text is sent to that provider when you ask for a summary or an OpenAI voice.</p>
+      <p class="hint">Shortcuts: Alt+Shift+S summarize · Alt+Shift+R read · Alt+Shift+L summarize &amp; read (change them in about:addons → ⚙ → Manage Extension Shortcuts).</p>
+    </form>
+
+    <script src="../src/settings.js"></script>
+    <script src="../src/providers.js"></script>
+    <script src="../src/speech.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

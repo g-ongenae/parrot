@@ -1,0 +1,14 @@
+{
+  "name": "parrot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TL;DL — Too Long, Do Listen. Summarize or read web pages out loud.",
+  "scripts": {
+    "start": "web-ext run --source-dir . --ignore-files package.json README.md",
+    "lint": "web-ext lint --source-dir . --ignore-files package.json README.md",
+    "build": "web-ext build --source-dir . --overwrite-dest --ignore-files package.json README.md"
+  },
+  "devDependencies": {
+    "web-ext": "^8.0.0"
+  }
+}

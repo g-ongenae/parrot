@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../src/theme.css" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <img src="../icons/parrot.svg" alt="" />
+      <div>
+        <h1>Parrot</h1>
+        <p class="tagline">TL;DL · Too Long, Do Listen</p>
+      </div>
+    </header>
+
+    <div class="actions">
+      <button class="action" data-mode="summarize">
+        <span class="emoji">📝</span>
+        <span><strong>Summarize</strong><small>Show the gist in a panel</small></span>
+      </button>
+      <button class="action" data-mode="read">
+        <span class="emoji">🔊</span>
+        <span><strong>Read out loud</strong><small>Read the page as it is</small></span>
+      </button>
+      <button class="action featured" data-mode="both">
+        <span class="emoji">🦜</span>
+        <span><strong>Summarize &amp; read</strong><small>Listen to the gist</small></span>
+      </button>
+    </div>
+
+    <p id="message" class="message" hidden></p>
+
+    <footer>
+      <span id="config"></span>
+      <button id="settings" class="link-btn">Settings</button>
+    </footer>
+
+    <script src="../src/settings.js"></script>
+    <script src="../src/launch.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

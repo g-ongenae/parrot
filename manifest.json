@@ -1,0 +1,55 @@
+{
+  "manifest_version": 3,
+  "name": "Parrot",
+  "version": "1.0.0",
+  "description": "TL;DL — Too Long, Do Listen. Summarize any page with Claude or ChatGPT, read it out loud, or both.",
+  "icons": {
+    "48": "icons/parrot.svg",
+    "96": "icons/parrot.svg",
+    "128": "icons/parrot.svg"
+  },
+  "action": {
+    "default_title": "Parrot — TL;DL, Too Long, Do Listen",
+    "default_popup": "popup/popup.html",
+    "default_icon": "icons/parrot.svg"
+  },
+  "background": {
+    "scripts": ["src/launch.js", "src/background.js"]
+  },
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["https://api.anthropic.com/*", "https://api.openai.com/*"],
+  "optional_host_permissions": ["*://*/*"],
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["panel/panel.html"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "commands": {
+    "summarize": {
+      "suggested_key": { "default": "Alt+Shift+S" },
+      "description": "Summarize the current page"
+    },
+    "read": {
+      "suggested_key": { "default": "Alt+Shift+R" },
+      "description": "Read the current page out loud"
+    },
+    "both": {
+      "suggested_key": { "default": "Alt+Shift+L" },
+      "description": "Summarize the current page and read the summary out loud"
+    }
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "parrot@tldl.extension",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["websiteContent"]
+      }
+    }
+  }
+}
