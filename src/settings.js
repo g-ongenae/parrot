@@ -4,7 +4,7 @@ const PARROT_DEFAULTS = {
   // Summary
   summaryProvider: "anthropic", // anthropic | openai | custom
   anthropicKey: "",
-  anthropicModel: "claude-opus-5-5",
+  anthropicModel: "claude-haiku-5-5",
   openaiKey: "",
   openaiModel: "gpt-5-mini",
   customBaseUrl: "http://localhost:11434/v1",
@@ -61,7 +61,10 @@ function ttsProviderReady(s) {
   return s.ttsProvider !== "openai" || Boolean(s.openaiKey);
 }
 
+function summaryModel(settings) {
+  return { anthropic: settings.anthropicModel, openai: settings.openaiModel, custom: settings.customModel }[settings.summaryProvider].trim();
+}
+
 function summaryModelLabel(settings) {
-  const model = { anthropic: settings.anthropicModel, openai: settings.openaiModel, custom: settings.customModel }[settings.summaryProvider];
-  return `${PROVIDER_LABELS[settings.summaryProvider]} (${model})`;
+  return `${PROVIDER_LABELS[settings.summaryProvider]} (${summaryModel(settings)})`;
 }

@@ -83,6 +83,7 @@ body {
 
 .badge {
   padding: 1px 8px;
+  white-space: nowrap;
   border-radius: 999px;
   background: var(--surface);
   border: 1px solid var(--border);

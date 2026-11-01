@@ -28,11 +28,11 @@
           <label>Anthropic API key <input name="anthropicKey" type="password" placeholder="sk-ant-…" autocomplete="off" /></label>
           <label>Model <input name="anthropicModel" list="anthropic-models" /></label>
           <datalist id="anthropic-models">
-            <option value="claude-opus-5-5"></option>
-            <option value="claude-sonnet-5-5"></option>
             <option value="claude-haiku-5-5"></option>
+            <option value="claude-sonnet-5-5"></option>
+            <option value="claude-opus-5-5"></option>
           </datalist>
-          <p class="hint">Get a key at <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>. Sonnet and Haiku are faster and cheaper than Opus for summaries.</p>
+          <p class="hint">Get a key at <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>. Haiku is the cheapest and handles summaries well; Sonnet and Opus cost more and can catch more nuance.</p>
         </div>
 
         <div data-show="summaryProvider=openai">

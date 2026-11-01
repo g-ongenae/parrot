@@ -14,6 +14,7 @@ let summaryState = "idle"; // idle | running | done | error
 let summaryAbort = null;
 let renderQueued = false;
 let summaryUsage = null; // token counts of the summary request
+let summaryCached = false; // the summary came from the session cache: no request was made
 let speechUsage = { characters: 0, cost: 0, priced: true, model: "" }; // OpenAI voice, all chunks
 
 function post(message) {
@@ -189,6 +190,10 @@ function updateUsage() {
   const details = [];
   let cost = 0;
   let priced = true;
+  if (summaryCached) {
+    details.push("Summary: reused from earlier in this session, no tokens used");
+    parts.push("cached");
+  }
   if (summaryUsage) {
     const summaryCost = costOf(summaryUsage);
     const tokens = `${formatCount(summaryUsage.input + summaryUsage.cacheRead + summaryUsage.cacheWrite)} in · ${formatCount(summaryUsage.output)} out`;
@@ -236,17 +241,28 @@ async function summarize() {
   summaryState = "running";
   summaryText = "";
   summaryAbort = new AbortController();
+  const prompt = summaryPrompt(settings, job, blocksToText(job.blocks));
+  showCoverage(prompt.coverage);
   setStatus(`Summarizing with ${summaryModelLabel(settings)}…`);
   updatePlayer();
   try {
-    const onUsage = (usage) => {
-      summaryUsage = usage;
-      recordUsage(costOf(usage));
+    const cacheKey = await summaryCacheKey(settings, prompt);
+    const cached = await getCachedSummary(cacheKey);
+    if (cached != null) {
+      summaryText = cached;
+      summaryCached = true;
       updateUsage();
-    };
-    for await (const delta of streamSummary(settings, job, blocksToText(job.blocks), summaryAbort.signal, onUsage)) {
-      summaryText += delta;
-      if (view === "summary") scheduleRender();
+    } else {
+      const onUsage = (usage) => {
+        summaryUsage = usage;
+        recordUsage(costOf(usage));
+        updateUsage();
+      };
+      for await (const delta of streamSummary(settings, prompt, summaryAbort.signal, onUsage)) {
+        summaryText += delta;
+        if (view === "summary") scheduleRender();
+      }
+      putCachedSummary(cacheKey, summaryText).catch((err) => console.warn("Parrot: could not cache the summary", err));
     }
     summaryState = "done";
   } catch (err) {
@@ -258,6 +274,14 @@ async function summarize() {
     if (view === "summary") render();
     updatePlayer();
   }
+}
+
+// Long pages are cut before summarizing: say how much of the page the summary covers.
+function showCoverage(coverage) {
+  const badge = $("coverage-badge");
+  badge.hidden = coverage >= 1;
+  badge.textContent = `First ${Math.round(coverage * 100)}% summarized`;
+  badge.title = "The page is too long to send whole: the summary covers its beginning. Select a passage to summarize another part.";
 }
 
 function listen(which) {

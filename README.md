@@ -25,7 +25,7 @@ Requires Firefox 140+.
 Open the settings (popup → **Settings**) and choose:
 
 - **Summary provider**:
-  - **Claude**: Anthropic API key, default model `claude-opus-5-5` (`claude-sonnet-5-5` / `claude-haiku-5-5` are faster and cheaper)
+  - **Claude**: Anthropic API key, default model `claude-haiku-5-5`, the cheapest (`claude-sonnet-5-5` / `claude-opus-5-5` cost more and can catch more nuance)
   - **ChatGPT**: OpenAI API key and model
   - **Other**: any OpenAI-compatible `/chat/completions` endpoint (Ollama, LM Studio, Mistral, OpenRouter, Groq…)
 - **Voice**:
@@ -45,6 +45,13 @@ Click **Save**: Firefox asks for permission to reach the provider you picked.
 The panel shows what the current page has cost so far (summary + OpenAI voice), e.g. `≈ $0.036`; hover it for the token breakdown. The popup shows the running total since the last reset.
 
 Token counts come from the provider; dollar amounts are estimates from the list prices in `src/usage.js`, so update that table when prices change. Models without a known price (custom providers, new releases) show token counts only. The browser voice is free.
+
+To keep costs down, Parrot:
+
+- reuses a summary for the rest of the browser session when you summarize the same page again with the same settings (the panel shows `cached`);
+- sends at most the first 100,000 characters of a page (about 25k tokens): longer pages are summarized from their beginning, and the panel shows how much was covered;
+- drops query strings and fragments (mostly tracking parameters) from the URL it sends;
+- asks OpenAI reasoning models (`gpt-5*`, `o*`) for `low` reasoning effort, as Claude already gets `low` effort.
 
 ## Layout
 
