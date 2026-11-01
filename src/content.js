@@ -14,7 +14,17 @@
     "[hidden]", "[aria-hidden='true']", "[role='navigation']", "[role='banner']", "[role='contentinfo']",
     "[role='complementary']", ".sr-only", ".visually-hidden",
     "#comments", ".comments", ".share", ".social", ".related", ".newsletter", ".advert", ".ads", ".ad",
+    "time", "[rel='author']", ".byline", ".author", ".dateline", ".timestamp",
   ].join(",");
+  // Substring class matches: noisy but broad, so they never apply to a container holding most of the article.
+  const NOISE_SELECTOR = [
+    "[class*='cookie']", "[id*='cookie']", "[class*='consent']", "[class*='promo']", "[class*='paywall']",
+    "[class*='subscribe']", "[class*='newsletter']",
+  ].join(",");
+  // Read aloud and shown in the Original view, but left out of the summary prompt.
+  const NO_SUMMARY_TAGS = new Set(["FIGCAPTION", "PRE"]);
+  const MIN_LI_LENGTH = 25;
+  const MAX_LIST_LINK_RATIO = 0.8;
   const ROOT_CANDIDATES = "article, main, [role='main'], [itemprop='articleBody'], .entry-content, .post-content, .article-body, #content";
 
   const clean = (text) => text.replace(/\s+/g, " ").trim();
@@ -54,15 +64,31 @@
     return typeof el.checkVisibility !== "function" || el.checkVisibility({ visibilityProperty: true });
   }
 
+  // Share of a list's text that sits inside links: "related articles" and tag lists are almost all links.
+  function linkRatio(list) {
+    const total = clean(list.textContent).length;
+    if (!total) return 0;
+    let links = 0;
+    for (const a of list.querySelectorAll("a")) links += clean(a.textContent).length;
+    return links / total;
+  }
+
   function collectBlocks(root) {
     const blocks = [];
+    const seen = new Set();
+    const rootScore = paragraphTextLength(root);
+    const isNoise = (el) => el.matches(NOISE_SELECTOR) && paragraphTextLength(el) <= rootScore / 2;
     const walk = (el) => {
-      if (el.matches(SKIP_SELECTOR) || !isVisible(el)) return;
+      if (el !== root && (el.matches(SKIP_SELECTOR) || isNoise(el) || !isVisible(el))) return;
+      if ((el.tagName === "UL" || el.tagName === "OL") && linkRatio(el) > MAX_LIST_LINK_RATIO) return;
       if (BLOCK_TAGS.has(el.tagName)) {
         const text = clean(el.innerText ?? el.textContent);
-        if (!text) return;
+        if (!text || seen.has(text)) return;
+        if (el.tagName === "LI" && text.length < MIN_LI_LENGTH) return;
+        seen.add(text);
         if (/^H[1-6]$/.test(el.tagName)) blocks.push({ type: "h", text });
         else if (el.tagName === "LI") blocks.push({ type: "li", text });
+        else if (NO_SUMMARY_TAGS.has(el.tagName)) blocks.push({ type: "p", text, noSummary: true });
         else blocks.push({ type: "p", text });
         return;
       }

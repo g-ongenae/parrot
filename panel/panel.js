@@ -241,7 +241,7 @@ async function summarize() {
   summaryState = "running";
   summaryText = "";
   summaryAbort = new AbortController();
-  const prompt = summaryPrompt(settings, job, blocksToText(job.blocks));
+  const prompt = summaryPrompt(settings, job, blocksToText(job.blocks.filter((b) => !b.noSummary)));
   showCoverage(prompt.coverage);
   setStatus(`Summarizing with ${summaryModelLabel(settings)}…`);
   updatePlayer();
