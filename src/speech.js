@@ -1,6 +1,6 @@
 // Reads a list of text chunks out loud with either the browser's built-in voices or OpenAI TTS.
 // Emits: "chunk" (detail: index), "state" (detail: "loading" | "playing" | "paused" | "stopped" | "done"),
-// "error" (detail: Error).
+// "error" (detail: Error), "usage" (detail: usage of one OpenAI speech request, see usage.js).
 
 const CHUNK_SIZE = { browser: 280, openai: 1200 };
 
@@ -135,9 +135,11 @@ class Speaker extends EventTarget {
     if (index >= this.chunks.length) return null;
     this.abort ??= new AbortController();
     if (!this.audioCache.has(index)) {
-      const request = openaiSpeech(this.settings, speakable(this.chunks[index]), this.abort.signal).then((blob) =>
-        URL.createObjectURL(blob),
-      );
+      const text = speakable(this.chunks[index]);
+      const request = openaiSpeech(this.settings, text, this.abort.signal).then((blob) => {
+        this.emit("usage", { provider: "openai-tts", model: this.settings.openaiTtsModel.trim(), characters: text.length });
+        return URL.createObjectURL(blob);
+      });
       request.catch(() => {}); // surfaced when this chunk is actually played
       this.audioCache.set(index, request);
     }

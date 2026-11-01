@@ -13,6 +13,8 @@ let summaryText = "";
 let summaryState = "idle"; // idle | running | done | error
 let summaryAbort = null;
 let renderQueued = false;
+let summaryUsage = null; // token counts of the summary request
+let speechUsage = { characters: 0, cost: 0, priced: true, model: "" }; // OpenAI voice, all chunks
 
 function post(message) {
   window.parent.postMessage(JSON.stringify({ ...message, nonce }), "*");
@@ -181,6 +183,45 @@ function updatePlayer() {
   $("stop").disabled = state === "stopped" || state === "done";
 }
 
+// What this page has cost so far: the summary request plus any OpenAI speech.
+function updateUsage() {
+  const parts = [];
+  const details = [];
+  let cost = 0;
+  let priced = true;
+  if (summaryUsage) {
+    const summaryCost = costOf(summaryUsage);
+    const tokens = `${formatCount(summaryUsage.input + summaryUsage.cacheRead + summaryUsage.cacheWrite)} in · ${formatCount(summaryUsage.output)} out`;
+    details.push(`Summary (${summaryUsage.model}): ${tokens} tokens${summaryCost == null ? ", price unknown" : ` = ${formatCost(summaryCost)}`}`);
+    if (summaryCost == null) {
+      priced = false;
+      parts.push(`${tokens} tokens`);
+    } else cost += summaryCost;
+  }
+  if (speechUsage.characters) {
+    details.push(
+      `Voice (${speechUsage.model}): ${formatCount(speechUsage.characters)} characters${speechUsage.priced ? ` ≈ ${formatCost(speechUsage.cost)}` : ", price unknown"}`,
+    );
+    if (speechUsage.priced) cost += speechUsage.cost;
+    else priced = false;
+  }
+  if (!details.length) return;
+  if (cost || priced) parts.unshift(`≈ ${formatCost(cost)}`);
+  $("usage").hidden = false;
+  $("usage").textContent = parts.join(" · ");
+  $("usage").title = [...details, "Estimated from list prices."].join("\n");
+}
+
+function onSpeechUsage(usage) {
+  const cost = costOf(usage);
+  speechUsage.characters += usage.characters;
+  speechUsage.model = usage.model;
+  if (cost == null) speechUsage.priced = false;
+  else speechUsage.cost += cost;
+  recordUsage(cost);
+  updateUsage();
+}
+
 // ---------- actions ----------
 
 async function summarize() {
@@ -198,7 +239,12 @@ async function summarize() {
   setStatus(`Summarizing with ${summaryModelLabel(settings)}…`);
   updatePlayer();
   try {
-    for await (const delta of streamSummary(settings, job, blocksToText(job.blocks), summaryAbort.signal)) {
+    const onUsage = (usage) => {
+      summaryUsage = usage;
+      recordUsage(costOf(usage));
+      updateUsage();
+    };
+    for await (const delta of streamSummary(settings, job, blocksToText(job.blocks), summaryAbort.signal, onUsage)) {
       summaryText += delta;
       if (view === "summary") scheduleRender();
     }
@@ -282,6 +328,7 @@ async function start(incoming) {
     updatePlayer();
   });
   speaker.addEventListener("error", (e) => showError(explain(e.detail)));
+  speaker.addEventListener("usage", (e) => onSpeechUsage(e.detail));
 
   if (job.mode === "read") {
     showView("original");

@@ -40,12 +40,19 @@ Click **Save**: Firefox asks for permission to reach the provider you picked.
 - Shortcuts: `Alt+Shift+S` summarize, `Alt+Shift+R` read, `Alt+Shift+L` summarize & read.
 - In the panel: play/pause, stop, speed. Click any sentence to jump there. Switch between **Summary** and **Original**, or copy the text.
 
+## Cost
+
+The panel shows what the current page has cost so far (summary + OpenAI voice), e.g. `≈ $0.036`; hover it for the token breakdown. The popup shows the running total since the last reset.
+
+Token counts come from the provider; dollar amounts are estimates from the list prices in `src/usage.js`, so update that table when prices change. Models without a known price (custom providers, new releases) show token counts only. The browser voice is free.
+
 ## Layout
 
 ```
 manifest.json
 src/content.js     page text extraction + mounts the panel iframe
 src/providers.js   Claude / OpenAI / OpenAI-compatible streaming summaries, OpenAI TTS
+src/usage.js       list prices, cost per request, running total
 src/speech.js      chunked playback (browser speechSynthesis or OpenAI audio), highlighting, seek
 src/settings.js    defaults and storage
 panel/             the side panel (runs as an extension page, so API keys never reach the website)

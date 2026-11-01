@@ -11,6 +11,22 @@ loadSettings().then((s) => {
   if (!summaryProviderReady(s)) warn(`Summaries need a ${PROVIDER_LABELS[s.summaryProvider]} API key: open Settings.`);
 });
 
+async function showSpend() {
+  const totals = await loadUsageTotals();
+  if (!totals.requests) {
+    document.getElementById("spend").hidden = true;
+    return;
+  }
+  const since = new Date(totals.since).toLocaleDateString();
+  const unpriced = totals.unpriced ? ` (+${totals.unpriced} unpriced)` : "";
+  document.getElementById("spend-text").textContent = `Spent ≈ ${formatCost(totals.cost)}${unpriced} since ${since}`;
+  document.getElementById("spend-text").title = `${totals.requests} API requests. Estimated from list prices.`;
+  document.getElementById("spend").hidden = false;
+}
+showSpend();
+
+document.getElementById("spend-reset").addEventListener("click", () => resetUsageTotals().then(showSpend));
+
 for (const button of document.querySelectorAll(".action")) {
   button.addEventListener("click", async () => {
     const [tab] = await browser.tabs.query({ active: true, currentWindow: true });

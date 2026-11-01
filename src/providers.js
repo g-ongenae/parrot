@@ -68,7 +68,7 @@ async function apiError(response, provider) {
 const supportsEffort = (model) => /^claude-(opus|sonnet|haiku|fable|mythos)-(5|4-[6-9])/.test(model);
 const supportsFallback = (model) => /^claude-(opus-5|fable-5-1|sonnet-5-5)/.test(model);
 
-async function* streamAnthropic(settings, prompt, signal) {
+async function* streamAnthropic(settings, prompt, signal, onUsage) {
   const model = settings.anthropicModel.trim();
   const headers = {
     "content-type": "application/json",
@@ -92,8 +92,26 @@ async function* streamAnthropic(settings, prompt, signal) {
   const response = await fetch(ANTHROPIC_URL, { method: "POST", headers, body: JSON.stringify(body), signal });
   if (!response.ok) throw await apiError(response, "Claude");
 
+  // message_start carries the input tokens, message_delta the (cumulative) output tokens.
+  let usage = {};
+  let servedModel = model;
   for await (const { event, data } of sseEvents(response)) {
     const payload = JSON.parse(data);
+    if (event === "message_start") {
+      usage = { ...payload.message?.usage };
+      servedModel = payload.message?.model ?? model;
+    }
+    if (event === "message_delta" && payload.usage) usage = { ...usage, ...payload.usage };
+    if (event === "message_stop") {
+      onUsage?.({
+        provider: "anthropic",
+        model: servedModel,
+        input: usage.input_tokens ?? 0,
+        output: usage.output_tokens ?? 0,
+        cacheRead: usage.cache_read_input_tokens ?? 0,
+        cacheWrite: usage.cache_creation_input_tokens ?? 0,
+      });
+    }
     if (event === "content_block_delta" && payload.delta?.type === "text_delta") {
       yield payload.delta.text;
     } else if (event === "message_delta" && payload.delta?.stop_reason === "refusal") {
@@ -106,7 +124,7 @@ async function* streamAnthropic(settings, prompt, signal) {
   }
 }
 
-async function* streamOpenAICompatible({ baseUrl, key, model, label }, prompt, signal) {
+async function* streamOpenAICompatible({ baseUrl, key, model, label, provider }, prompt, signal, onUsage) {
   const headers = { "content-type": "application/json" };
   if (key) headers.authorization = `Bearer ${key}`;
   const response = await fetch(`${baseUrl.replace(/\/+$/, "")}/chat/completions`, {
@@ -116,6 +134,8 @@ async function* streamOpenAICompatible({ baseUrl, key, model, label }, prompt, s
     body: JSON.stringify({
       model,
       stream: true,
+      // Ask for token counts in the last chunk. Only sent to OpenAI: some compatible servers reject unknown fields.
+      ...(provider === "openai" && { stream_options: { include_usage: true } }),
       messages: [
         { role: "system", content: prompt.system },
         { role: "user", content: prompt.user },
@@ -128,27 +148,47 @@ async function* streamOpenAICompatible({ baseUrl, key, model, label }, prompt, s
     if (data === "[DONE]") return;
     const payload = JSON.parse(data);
     if (payload.error) throw new Error(`${label} error: ${payload.error.message ?? data}`);
+    if (payload.usage) {
+      const cached = payload.usage.prompt_tokens_details?.cached_tokens ?? 0;
+      onUsage?.({
+        provider,
+        model: payload.model ?? model,
+        input: (payload.usage.prompt_tokens ?? 0) - cached,
+        output: payload.usage.completion_tokens ?? 0,
+        cacheRead: cached,
+        cacheWrite: 0,
+      });
+    }
     const text = payload.choices?.[0]?.delta?.content;
     if (text) yield text;
   }
 }
 
-function streamSummary(settings, job, pageText, signal) {
+// onUsage(usage) is called once with the token counts, when the provider reports them.
+function streamSummary(settings, job, pageText, signal, onUsage) {
   const prompt = summaryPrompt(settings, job, pageText);
   switch (settings.summaryProvider) {
     case "anthropic":
-      return streamAnthropic(settings, prompt, signal);
+      return streamAnthropic(settings, prompt, signal, onUsage);
     case "openai":
       return streamOpenAICompatible(
-        { baseUrl: OPENAI_URL, key: settings.openaiKey, model: settings.openaiModel.trim(), label: "OpenAI" },
+        { baseUrl: OPENAI_URL, key: settings.openaiKey, model: settings.openaiModel.trim(), label: "OpenAI", provider: "openai" },
         prompt,
         signal,
+        onUsage,
       );
     default:
       return streamOpenAICompatible(
-        { baseUrl: settings.customBaseUrl, key: settings.customKey, model: settings.customModel.trim(), label: "Custom provider" },
+        {
+          baseUrl: settings.customBaseUrl,
+          key: settings.customKey,
+          model: settings.customModel.trim(),
+          label: "Custom provider",
+          provider: "custom",
+        },
         prompt,
         signal,
+        onUsage,
       );
   }
 }

@@ -90,3 +90,13 @@ footer {
   color: var(--accent-strong);
   text-decoration: underline;
 }
+
+.spend {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
