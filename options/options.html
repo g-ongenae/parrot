@@ -37,8 +37,13 @@
 
         <div data-show="summaryProvider=openai">
           <label>OpenAI API key <input name="openaiKey" type="password" placeholder="sk-…" autocomplete="off" /></label>
-          <label>Model <input name="openaiModel" /></label>
-          <p class="hint">Get a key at <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a>.</p>
+          <label>Model <input name="openaiModel" list="openai-models" /></label>
+          <datalist id="openai-models">
+            <option value="gpt-5.6-luna"></option>
+            <option value="gpt-5.6-terra"></option>
+            <option value="gpt-5.6-sol"></option>
+          </datalist>
+          <p class="hint">Get a key at <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a>. Luna is the cheapest and handles summaries well; Terra and Sol cost more and can catch more nuance.</p>
         </div>
 
         <div data-show="summaryProvider=custom">
