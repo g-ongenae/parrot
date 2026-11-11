@@ -226,10 +226,8 @@ function streamSummary(settings, prompt, signal, onUsage) {
 
 // ---------- summary cache ----------
 // Finished summaries are kept for the browser session, so reopening the panel on the same page
-// (same prompt, same model) costs nothing.
-
-const SUMMARY_CACHE_KEY = "summaryCache";
-const SUMMARY_CACHE_SIZE = 50;
+// (same prompt, same model) costs nothing. The cache lives in the background script
+// (src/background.js): Firefox does not give storage.session to the panel, which is framed in the page.
 
 async function summaryCacheKey(settings, prompt) {
   const source = JSON.stringify([settings.summaryProvider, settings.customBaseUrl, summaryModel(settings), prompt.system, prompt.user]);
@@ -237,20 +235,18 @@ async function summaryCacheKey(settings, prompt) {
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-async function loadSummaryCache() {
-  const { [SUMMARY_CACHE_KEY]: entries } = await browser.storage.session.get(SUMMARY_CACHE_KEY);
-  return entries ?? [];
-}
-
+// A cache failure only costs a request, so it never blocks the summary.
 async function getCachedSummary(key) {
-  return (await loadSummaryCache()).find((entry) => entry.key === key)?.text ?? null;
+  try {
+    return (await browser.runtime.sendMessage({ type: "summaryCache.get", key })) ?? null;
+  } catch (err) {
+    console.warn("Parrot: could not read the summary cache", err);
+    return null;
+  }
 }
 
-// Most recent first; the oldest entries are dropped past SUMMARY_CACHE_SIZE.
-async function putCachedSummary(key, text) {
-  const entries = (await loadSummaryCache()).filter((entry) => entry.key !== key);
-  entries.unshift({ key, text });
-  await browser.storage.session.set({ [SUMMARY_CACHE_KEY]: entries.slice(0, SUMMARY_CACHE_SIZE) });
+function putCachedSummary(key, text) {
+  return browser.runtime.sendMessage({ type: "summaryCache.put", key, text });
 }
 
 async function openaiSpeech(settings, text, signal) {

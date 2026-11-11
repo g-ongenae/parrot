@@ -6,7 +6,7 @@ const PARROT_DEFAULTS = {
   anthropicKey: "",
   anthropicModel: "claude-haiku-5-5",
   openaiKey: "",
-  openaiModel: "gpt-5-mini",
+  openaiModel: "gpt-5.6-luna",
   customBaseUrl: "http://localhost:11434/v1",
   customKey: "",
   customModel: "llama3.2",
@@ -28,9 +28,32 @@ const PROVIDER_LABELS = {
   browser: "Browser voice",
 };
 
+// OpenAI models shut down on 2026-12-11, with their replacement. OpenAI suggests gpt-5.6-terra for
+// gpt-5-mini, but it costs 8x more; gpt-5.6-luna is cheaper than gpt-5-mini and handles summaries.
+const RETIRED_OPENAI_MODELS = {
+  "gpt-5": "gpt-5.6-sol",
+  "gpt-5-mini": "gpt-5.6-luna",
+  "gpt-5-nano": "gpt-5.6-luna",
+  "gpt-5-pro": "gpt-5.6-sol",
+  o3: "gpt-5.6-sol",
+  "o3-pro": "gpt-5.6-sol",
+};
+
+// "gpt-5-mini" and its snapshot "gpt-5-mini-2025-08-07" both map to the replacement.
+function replaceRetiredModel(model) {
+  const base = model.trim().replace(/-\d{4}-\d{2}-\d{2}$/, "");
+  return RETIRED_OPENAI_MODELS[base] ?? model;
+}
+
 async function loadSettings() {
   const stored = await browser.storage.local.get(PARROT_DEFAULTS);
-  return { ...PARROT_DEFAULTS, ...stored };
+  const settings = { ...PARROT_DEFAULTS, ...stored };
+  const openaiModel = replaceRetiredModel(settings.openaiModel);
+  if (openaiModel !== settings.openaiModel) {
+    settings.openaiModel = openaiModel;
+    await browser.storage.local.set({ openaiModel });
+  }
+  return settings;
 }
 
 function saveSettings(values) {

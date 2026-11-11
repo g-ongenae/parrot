@@ -26,7 +26,7 @@ Open the settings (popup → **Settings**) and choose:
 
 - **Summary provider**:
   - **Claude**: Anthropic API key, default model `claude-haiku-5-5`, the cheapest (`claude-sonnet-5-5` / `claude-opus-5-5` cost more and can catch more nuance)
-  - **ChatGPT**: OpenAI API key and model
+  - **ChatGPT**: OpenAI API key, default model `gpt-5.6-luna`, the cheapest (`gpt-5.6-terra` / `gpt-5.6-sol` cost more). Models OpenAI shuts down on 2026-12-11 (`gpt-5`, `gpt-5-mini`, `gpt-5-nano`, `gpt-5-pro`, `o3`, `o3-pro`) are switched to their replacement automatically
   - **Other**: any OpenAI-compatible `/chat/completions` endpoint (Ollama, LM Studio, Mistral, OpenRouter, Groq…)
 - **Voice**:
   - **Browser voice**: free and offline, uses your system voices

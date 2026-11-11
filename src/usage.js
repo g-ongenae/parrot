@@ -20,6 +20,12 @@ const CLAUDE_PRICES = {
 };
 
 const OPENAI_PRICES = {
+  "gpt-5.6-sol": { input: 4, output: 20, cacheRead: 0.4 },
+  "gpt-5.6-terra": { input: 2, output: 12, cacheRead: 0.2 },
+  "gpt-5.6-luna": { input: 0.2, output: 1.2, cacheRead: 0.02 },
+  "gpt-5.4": { input: 2.5, output: 15, cacheRead: 0.25 },
+  "gpt-5.4-mini": { input: 0.75, output: 4.5, cacheRead: 0.075 },
+  "gpt-5.4-nano": { input: 0.2, output: 1.25, cacheRead: 0.02 },
   "gpt-5": { input: 1.25, output: 10, cacheRead: 0.125 },
   "gpt-5-mini": { input: 0.25, output: 2, cacheRead: 0.025 },
   "gpt-5-nano": { input: 0.05, output: 0.4, cacheRead: 0.005 },
