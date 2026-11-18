@@ -71,3 +71,7 @@ icons/parrot.svg
 ## Privacy
 
 API keys are stored in `browser.storage.local` and are sent only to the provider you pick. Page text leaves your machine only when you ask for a summary, or for reading aloud with an OpenAI voice.
+
+## License
+
+[MIT](LICENSE)

@@ -2,6 +2,7 @@
   "name": "parrot",
   "version": "1.0.0",
   "private": true,
+  "license": "MIT",
   "description": "TL;DL — Too Long, Do Listen. Summarize or read web pages out loud.",
   "scripts": {
     "start": "web-ext run --source-dir . --ignore-files package.json README.md",
